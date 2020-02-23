@@ -1,0 +1,29 @@
+{
+    "name": "shibuyakosuke/laravel-postalcode-japan",
+    "description": "郵便番号データを取り込んで住所マスタを作成します。",
+    "type": "library",
+    "require": {
+        "maatwebsite/excel": "^3.1",
+        "guzzlehttp/guzzle": "^6.5",
+        "ext-zip": "*"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "ShibuyaKosuke",
+            "email": "shibuya@imagenious.co.jp"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "ShibuyaKosuke\\LaravelPostalcodeJapan\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "ShibuyaKosuke\\LaravelPostalcodeJapan\\Providers\\CommandServiceProvider"
+            ]
+        }
+    }
+}
