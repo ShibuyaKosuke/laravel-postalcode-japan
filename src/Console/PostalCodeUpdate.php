@@ -34,10 +34,16 @@ class PostalCodeUpdate extends Command
             return;
         }
         $archiveService = new ArchiveService($destination);
-        if ($archiveService->unzip() && $archiveService->mb_convert()) {
-            $csv_file = $archiveService->getOutFile();
-            (new PostalCodeImport())->import($csv_file);
+        if (!$archiveService->unzip()) {
+            return;
         }
+        if (!$archiveService->mb_convert()) {
+            return;
+        }
+
+        $csv_file = $archiveService->getOutFile();
+        (new PostalCodeImport())->withOutput($this->getOutput())
+            ->import($csv_file);
 
     }
 }

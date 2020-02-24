@@ -7,12 +7,13 @@ use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\WithCustomChunkSize;
 use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Concerns\WithProgressBar;
 use Maatwebsite\Excel\Events\BeforeImport;
 use ShibuyaKosuke\LaravelPostalcodeJapan\Models\City;
 use ShibuyaKosuke\LaravelPostalcodeJapan\Models\PostalCode;
 use ShibuyaKosuke\LaravelPostalcodeJapan\Models\Prefecture;
 
-class PostalCodeImport implements ToModel, WithChunkReading, WithCustomChunkSize, WithEvents
+class PostalCodeImport implements ToModel, WithChunkReading, WithCustomChunkSize, WithEvents, WithProgressBar
 {
     use Importable;
 
