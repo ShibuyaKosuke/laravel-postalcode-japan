@@ -39,7 +39,6 @@ class CreatePostalCodesTable extends Migration
         });
 
         Schema::enableForeignKeyConstraints();
-        DB::statement("ALTER TABLE `postal_codes` COMMENT '郵便番号マスタ'");
     }
 
     /**

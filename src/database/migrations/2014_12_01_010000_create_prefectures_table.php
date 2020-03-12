@@ -2,7 +2,6 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 class CreatePrefecturesTable extends Migration
@@ -23,7 +22,6 @@ class CreatePrefecturesTable extends Migration
             $table->timestamp('updated_at')->nullable()->comment('更新日時');
         });
 
-        DB::statement("ALTER TABLE `prefectures` COMMENT '都道府県マスタ'");
         Schema::enableForeignKeyConstraints();
     }
 
