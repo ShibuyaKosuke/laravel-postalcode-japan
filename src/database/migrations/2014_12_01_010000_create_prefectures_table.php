@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 class CreatePrefecturesTable extends Migration
@@ -21,6 +22,10 @@ class CreatePrefecturesTable extends Migration
             $table->timestamp('created_at')->nullable()->comment('作成日時');
             $table->timestamp('updated_at')->nullable()->comment('更新日時');
         });
+
+        if (\config('database.default') == 'mysql') {
+            DB::statement(sprintf("ALTER TABLE `%s` COMMENT '%s'", 'prefectures', '都道府県'));
+        }
 
         Schema::enableForeignKeyConstraints();
     }

@@ -24,6 +24,10 @@ class CreateCitiesTable extends Migration
             $table->foreign('prefecture_id')->references('id')->on('prefectures');
         });
 
+        if (\config('database.default') == 'mysql') {
+            DB::statement(sprintf("ALTER TABLE `%s` COMMENT '%s'", 'cities', '市区郡'));
+        }
+
         Schema::enableForeignKeyConstraints();
     }
 
