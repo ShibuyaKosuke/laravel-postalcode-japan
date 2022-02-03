@@ -8,6 +8,7 @@ use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\WithCustomChunkSize;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithProgressBar;
+use Maatwebsite\Excel\Events\AfterImport;
 use Maatwebsite\Excel\Events\BeforeImport;
 use ShibuyaKosuke\LaravelPostalcodeJapan\Models\City;
 use ShibuyaKosuke\LaravelPostalcodeJapan\Models\PostalCode;
@@ -18,44 +19,33 @@ class PostalCodeImport implements ToModel, WithChunkReading, WithCustomChunkSize
     use Importable;
 
     /**
+     * @var string[]
+     */
+    protected $fields = [
+        'official_code',
+        'postal_code5',
+        'postal_code7',
+        'kana_pref',
+        'kana_city',
+        'kana_town',
+        'pref',
+        'city',
+        'town',
+        'flag_doubleCode',
+        'flag_banchi',
+        'flag_chome',
+        'flag_double_area',
+        'flag_update',
+        'flag_update_reason',
+    ];
+
+    /**
      * @inheritDoc
      */
     public function model(array $row)
     {
-        $postal_code = PostalCode::create([
-            'official_code' => $row[0],
-            'postal_code5' => $row[1],
-            'postal_code7' => $row[2],
-            'kana_pref' => $row[3],
-            'kana_city' => $row[4],
-            'kana_town' => $row[5],
-            'pref' => $row[6],
-            'city' => $row[7],
-            'town' => $row[8],
-            'flag_doubleCode' => $row[9],
-            'flag_banchi' => $row[10],
-            'flag_chome' => $row[11],
-            'flag_double_area' => $row[12],
-            'flag_update' => $row[13],
-            'flag_update_reason' => $row[14],
-        ]);
-
-        Prefecture::updateOrcreate([
-            'id' => floor($row[0] / 1000),
-        ], [
-            'id' => floor($row[0] / 1000),
-            'name' => $row[6]
-        ]);
-
-        City::updateOrCreate([
-            'id' => $row[0],
-        ], [
-            'id' => $row[0],
-            'prefecture_id' => floor($row[0] / 1000),
-            'name' => $row[7]
-        ]);
-
-        return $postal_code;
+        $data = array_combine($this->fields, $row);
+        return PostalCode::create($data);
     }
 
     /**
@@ -63,7 +53,7 @@ class PostalCodeImport implements ToModel, WithChunkReading, WithCustomChunkSize
      */
     public function chunkSize(): int
     {
-        return 1000;
+        return 200;
     }
 
     /**
@@ -74,6 +64,34 @@ class PostalCodeImport implements ToModel, WithChunkReading, WithCustomChunkSize
         return [
             BeforeImport::class => function (BeforeImport $event) {
                 PostalCode::truncate();
+            },
+            AfterImport::class => function (AfterImport $event) {
+                $cities = PostalCode::query()
+                    ->select(['official_code', 'city'])
+                    ->groupBy('official_code')
+                    ->get();
+                $prefectures = PostalCode::query()
+                    ->select(['official_code', 'prefecture_id', 'pref'])
+                    ->groupBy('prefecture_id')
+                    ->get();
+
+                $cities->each(function (PostalCode $postalCode) {
+                    City::updateOrCreate([
+                        'id' => $postalCode->official_code,
+                    ], [
+                        'id' => $postalCode->official_code,
+                        'prefecture_id' => floor($postalCode->official_code / 1000),
+                        'name' => $postalCode->city,
+                    ]);
+                });
+                $prefectures->each(function (PostalCode $postalCode) {
+                    Prefecture::updateOrcreate([
+                        'id' => floor($postalCode->official_code / 1000),
+                    ], [
+                        'id' => floor($postalCode->official_code / 1000),
+                        'name' => $postalCode->pref,
+                    ]);
+                });
             }
         ];
     }
