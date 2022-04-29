@@ -66,7 +66,7 @@ class PostalCodeImport implements ToModel, WithChunkReading, WithCustomChunkSize
             AfterImport::class => function (AfterImport $event) {
                 PostalCode::query()
                     ->selectRaw('floor(official_code / 1000) as id, pref as name')
-                    ->groupByRaw('floor(official_code / 1000)')
+                    ->groupByRaw('id, name')
                     ->get(['id', 'name'])
                     ->each(function ($prefecture) {
                         Prefecture::updateOrcreate([
@@ -78,7 +78,7 @@ class PostalCodeImport implements ToModel, WithChunkReading, WithCustomChunkSize
                     });
                 PostalCode::query()
                     ->selectRaw('official_code as id, floor(official_code / 1000) as prefecture_id, city as name')
-                    ->groupByRaw('floor(official_code / 1000)')
+                    ->groupByRaw('prefecture_id, id, name')
                     ->get(['id', 'prefecture_id', 'name'])
                     ->each(function ($city) {
                         City::updateOrCreate([
