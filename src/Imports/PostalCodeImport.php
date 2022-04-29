@@ -2,12 +2,15 @@
 
 namespace ShibuyaKosuke\LaravelPostalcodeJapan\Imports;
 
+use Closure;
+use Illuminate\Database\Eloquent\Model;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\WithCustomChunkSize;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithProgressBar;
+use Maatwebsite\Excel\Events\AfterImport;
 use Maatwebsite\Excel\Events\BeforeImport;
 use ShibuyaKosuke\LaravelPostalcodeJapan\Models\City;
 use ShibuyaKosuke\LaravelPostalcodeJapan\Models\PostalCode;
@@ -18,7 +21,8 @@ class PostalCodeImport implements ToModel, WithChunkReading, WithCustomChunkSize
     use Importable;
 
     /**
-     * @inheritDoc
+     * @param array $row
+     * @return Model|Model[]|null
      */
     public function model(array $row)
     {
@@ -39,41 +43,52 @@ class PostalCodeImport implements ToModel, WithChunkReading, WithCustomChunkSize
             'flag_update' => $row[13],
             'flag_update_reason' => $row[14],
         ]);
-
-        Prefecture::updateOrcreate([
-            'id' => floor($row[0] / 1000),
-        ], [
-            'id' => floor($row[0] / 1000),
-            'name' => $row[6]
-        ]);
-
-        City::updateOrCreate([
-            'id' => $row[0],
-        ], [
-            'id' => $row[0],
-            'prefecture_id' => floor($row[0] / 1000),
-            'name' => $row[7]
-        ]);
-
         return $postal_code;
     }
 
     /**
-     * @inheritDoc
+     * @return integer
      */
     public function chunkSize(): int
     {
-        return 200;
+        return 1000;
     }
 
     /**
-     * @inheritDoc
+     * @return Closure[]
      */
     public function registerEvents(): array
     {
         return [
             BeforeImport::class => function (BeforeImport $event) {
                 PostalCode::truncate();
+            },
+            AfterImport::class => function (AfterImport $event) {
+                PostalCode::query()
+                    ->selectRaw('floor(official_code / 1000) as id, pref as name')
+                    ->groupByRaw('floor(official_code / 1000)')
+                    ->get(['id', 'name'])
+                    ->each(function ($prefecture) {
+                        Prefecture::updateOrcreate([
+                            'id' => $prefecture->id,
+                        ], [
+                            'id' => $prefecture->id,
+                            'name' => $prefecture->name
+                        ]);
+                    });
+                PostalCode::query()
+                    ->selectRaw('official_code as id, floor(official_code / 1000) as prefecture_id, city as name')
+                    ->groupByRaw('floor(official_code / 1000)')
+                    ->get(['id', 'prefecture_id', 'name'])
+                    ->each(function ($city) {
+                        City::updateOrCreate([
+                            'id' => $city->id,
+                        ], [
+                            'id' => $city->id,
+                            'prefecture_id' => $city->prefecture_id,
+                            'name' => $city->name
+                        ]);
+                    });
             }
         ];
     }
