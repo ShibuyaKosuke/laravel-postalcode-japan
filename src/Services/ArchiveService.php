@@ -56,9 +56,9 @@ class ArchiveService
         if ($this->zip->open(storage_path('app/' . $this->zip_file)) === true) {
             $res = ($this->zip->extractTo(storage_path('app/temp/')) && $this->zip->close());
             if ($this->test) {
-                $this->csv = 'app/temp/KEN_ALL.CSV';
-            } else {
                 $this->csv = 'app/temp/13TOKYO.CSV';
+            } else {
+                $this->csv = 'app/temp/KEN_ALL.CSV';
             }
             return $res;
         }
