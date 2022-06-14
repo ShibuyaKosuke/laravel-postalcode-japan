@@ -14,7 +14,7 @@ class PostalCodeUpdate extends Command
      *
      * @var string
      */
-    protected $signature = 'postalcode:update';
+    protected $signature = 'postalcode:update {--test}';
 
     /**
      * The console command description.
@@ -25,15 +25,17 @@ class PostalCodeUpdate extends Command
 
     /**
      * @return void
+     * @throws \GuzzleHttp\Exception\GuzzleException
      */
     public function handle(): void
     {
+        $test = $this->option('test');
         $destination = 'temp/ken_all.zip';
-        $postalCodeService = new PostalCodeService($destination);
+        $postalCodeService = new PostalCodeService($test, $destination);
         if (!$postalCodeService->download()) {
             return;
         }
-        $archiveService = new ArchiveService($destination);
+        $archiveService = new ArchiveService($test, $destination);
         if (!$archiveService->unzip()) {
             return;
         }
@@ -44,6 +46,5 @@ class PostalCodeUpdate extends Command
         $csv_file = $archiveService->getOutFile();
         (new PostalCodeImport())->withOutput($this->getOutput())
             ->import($csv_file);
-
     }
 }
