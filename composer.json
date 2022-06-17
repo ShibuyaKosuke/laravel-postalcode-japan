@@ -4,7 +4,7 @@
     "type": "library",
     "require": {
         "maatwebsite/excel": "^3.1",
-        "guzzlehttp/guzzle": "^6.5.6|^7.4.3",
+        "guzzlehttp/guzzle": "^6.5.6|^7.4.4",
         "ext-zip": "*"
     },
     "license": "MIT",
