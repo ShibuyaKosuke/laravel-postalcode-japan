@@ -53,7 +53,7 @@ class ArchiveService
     public function unzip()
     {
         $this->zip = new \ZipArchive();
-        if ($this->zip->open(storage_path('app/' . $this->zip_file)) === true) {
+        if ($this->zip->open(\Storage::path($this->zip_file)) === true) {
             $res = ($this->zip->extractTo(storage_path('app/temp/')) && $this->zip->close());
             if ($this->test) {
                 $this->csv = 'app/temp/13TOKYO.CSV';
